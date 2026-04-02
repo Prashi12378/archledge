@@ -1,7 +1,10 @@
 // Supabase Configuration
 const SUPABASE_URL = 'https://lonakqiibwcgvuszynii.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_e2Zek5Nkv65M7Q5nRVlSSA_bOiLU-o9';
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+const supabase = (window.supabase || supabase)?.createClient ? (window.supabase || supabase).createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+if (!supabase) console.error("Supabase fail to initialize. Check CDN link in index.html");
+else console.log("Supabase initialized successfully.");
 
 const fmt = (n)=> n ? n.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : '0.00';
 const fmtInt = (n)=> n ? n.toLocaleString('en-IN') : '0';
