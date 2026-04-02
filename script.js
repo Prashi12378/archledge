@@ -1,3 +1,8 @@
+// Supabase Configuration - REPLACE WITH YOUR OWN KEYS
+const SUPABASE_URL = 'https://your-project-url.supabase.co';
+const SUPABASE_KEY = 'your-anon-key';
+const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
 const fmt = (n)=> n ? n.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : '0.00';
 const fmtInt = (n)=> n ? n.toLocaleString('en-IN') : '0';
 const generateId = ()=> 'id_' + Math.random().toString(36).substr(2, 9);
@@ -16,18 +21,72 @@ function activeProj(){
   return p;
 }
 
-function load(){
+async function load(){
   try {
-    const s = localStorage.getItem('boq_v2_data');
-    if(s) {
-      DB = JSON.parse(s);
-      if(!DB.studio) DB.studio = { name: 'ArchLedge', tagline: 'Architectural Studio', address: 'Bangalore, India', email: 'studio@archledge.com' };
+    // 1. Try local storage first (for legacy/offline)
+    const localData = localStorage.getItem('boq_v2_data');
+    if(localData) {
+      DB = JSON.parse(localData);
     }
-    else seed();
+
+    // 2. If Supabase is available and user is logged in, sync from cloud
+    if(supabase){
+      const { data: { session } } = await supabase.auth.getSession();
+      if(session && session.user){
+        const { data, error } = await supabase.from('projects').select('*').eq('user_id', session.user.id);
+        if(!error && data.length > 0){
+          // Merge or replace local projects with cloud projects
+          // For simplicity, we replace for now
+          DB.projects = data.map(p => ({
+            id: p.id,
+            name: p.name,
+            client: p.client,
+            location: p.location,
+            startDate: p.start_date,
+            reference: p.reference,
+            status: p.status,
+            bills: p.data.bills,
+            itemsNotIncluded: p.data.itemsNotIncluded
+          }));
+        }
+      }
+    }
+
+    if(!DB.projects || DB.projects.length === 0) seed();
+    if(!DB.studio) DB.studio = { name: 'ArchLedge', tagline: 'Architectural Studio', address: 'Bangalore, India', email: 'studio@archledge.com' };
+    
     render();
   } catch(e) { console.error("Load error:", e); seed(); }
 }
-function save(){ localStorage.setItem('boq_v2_data', JSON.stringify(DB)); render(); }
+
+async function save(){ 
+  // Always save to localStorage for offline resilience
+  localStorage.setItem('boq_v2_data', JSON.stringify(DB)); 
+  
+  // Sync to Supabase if logged in
+  if(supabase){
+    const { data: { session } } = await supabase.auth.getSession();
+    if(session && session.user){
+      const p = activeProj();
+      if(p){
+        const { error } = await supabase.from('projects').upsert({
+          id: p.id,
+          user_id: session.user.id,
+          name: p.name,
+          client: p.client,
+          location: p.location,
+          start_date: p.startDate,
+          reference: p.reference,
+          status: p.status,
+          data: { bills: p.bills, itemsNotIncluded: p.itemsNotIncluded },
+          updated_at: new Date()
+        });
+        if(error) console.error("Supabase Save Error:", error);
+      }
+    }
+  }
+  render(); 
+}
 
 function seed(){
   const p = {
@@ -401,5 +460,63 @@ function triggerPrint() {
 }
 
 window.onhashchange = ()=>{ render(); initIcons(); };
-window.onload = ()=>{ load(); initIcons(); };
+window.onload = ()=>{ 
+  load(); 
+  initIcons();
+  if(supabase) {
+    supabase.auth.onAuthStateChange((event, session) => {
+      updateAuthUI(session);
+      if(event === 'SIGNED_IN') load();
+    });
+  }
+};
 document.getElementById('new-project-btn').onclick = ()=>{ location.hash = '#new-project'; };
+
+// AUTH LOGIC
+let authMode = 'login';
+function openAuthModal(){ document.getElementById('auth-modal-backdrop').style.display = 'flex'; }
+function closeAuthModal(){ document.getElementById('auth-modal-backdrop').style.display = 'none'; }
+function toggleAuthMode(){
+  authMode = authMode === 'login' ? 'signup' : 'login';
+  document.getElementById('auth-title').innerText = authMode === 'login' ? 'Welcome Back' : 'Create Account';
+  document.getElementById('auth-submit-btn').innerText = authMode === 'login' ? 'Sign In' : 'Join ArchLedge';
+  document.getElementById('auth-toggle-btn').innerText = authMode === 'login' ? "Don't have an account? Sign Up" : "Already have an account? Sign In";
+}
+
+async function handleAuth(e){
+  e.preventDefault();
+  if(!supabase) return toast('Supabase not configured', 'error');
+  const email = document.getElementById('auth-email').value;
+  const password = document.getElementById('auth-pass').value;
+  
+  let result;
+  if(authMode === 'login'){
+    result = await supabase.auth.signInWithPassword({ email, password });
+  } else {
+    result = await supabase.auth.signUp({ email, password });
+  }
+
+  if(result.error) toast(result.error.message, 'error');
+  else {
+    toast(authMode === 'login' ? 'Signed in!' : 'Check your email for confirmation!');
+    closeAuthModal();
+  }
+}
+
+async function signOut(e){
+  e.preventDefault();
+  await supabase.auth.signOut();
+  DB.projects = [];
+  seed();
+  toast('Signed out');
+}
+
+function updateAuthUI(session){
+  const user = session?.user;
+  document.getElementById('auth-nav').style.display = user ? 'none' : 'block';
+  document.getElementById('user-profile').style.display = user ? 'flex' : 'none';
+  if(user){
+    document.getElementById('user-email').innerText = user.email;
+    document.getElementById('user-avatar').innerText = user.email[0].toUpperCase();
+  }
+}

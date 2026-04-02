@@ -7,6 +7,7 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600;700&family=Roboto+Mono:wght@300;400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div id="app">
@@ -38,6 +39,16 @@
       </a>
     </nav>
     <div style="flex:1"></div>
+    <div id="user-profile" style="padding: 15px; border-top: 1px solid var(--border); display: none; align-items: center; gap: 10px; overflow: hidden; white-space: nowrap;">
+      <div class="user-avatar" id="user-avatar" style="width: 32px; height: 32px; background: var(--accent); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; min-width: 32px;">U</div>
+      <div class="user-info" style="flex: 1; min-width: 0;">
+        <div id="user-email" style="font-size: 12px; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis;">user@example.com</div>
+        <a href="#" onclick="signOut(event)" style="font-size: 10px; color: var(--muted); text-transform: uppercase;">Sign Out</a>
+      </div>
+    </div>
+    <div id="auth-nav" style="padding: 15px; border-top: 1px solid var(--border);">
+      <button class="btn btn-outline btn-sm" style="width: 100%;" onclick="openAuthModal()">Sign In</button>
+    </div>
     <div class="footer">Professional Studio Tool</div>
   </aside>
   <main id="main">
@@ -217,6 +228,29 @@
       <button class="btn btn-outline" onclick="closeConfirm()">Cancel</button>
       <button class="btn btn-primary" id="confirm-yes-btn" style="background:var(--danger)">Yes, Delete</button>
     </div>
+  </div>
+</div>
+
+<!-- Auth Modal -->
+<div class="modal-backdrop" id="auth-modal-backdrop">
+  <div class="modal" style="max-width:400px">
+    <h2 id="auth-title">Welcome Back</h2>
+    <p id="auth-msg" style="font-size: 13px; color: var(--muted); margin-bottom: 20px;">Sign in to sync your projects across devices.</p>
+    <form id="auth-form" onsubmit="handleAuth(event)">
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="auth-email" required placeholder="name@company.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="auth-pass" required placeholder="••••••••">
+      </div>
+      <div style="margin-top: 25px; display: flex; flex-direction: column; gap: 10px;">
+        <button type="submit" class="btn btn-primary" id="auth-submit-btn">Sign In</button>
+        <button type="button" class="btn btn-outline" id="auth-toggle-btn" onclick="toggleAuthMode()">Don't have an account? Sign Up</button>
+        <button type="button" class="btn btn-outline" onclick="closeAuthModal()">Close</button>
+      </div>
+    </form>
   </div>
 </div>
 
