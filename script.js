@@ -1,6 +1,6 @@
-// Supabase Configuration - REPLACE WITH YOUR OWN KEYS
-const SUPABASE_URL = 'https://your-project-url.supabase.co';
-const SUPABASE_KEY = 'your-anon-key';
+// Supabase Configuration
+const SUPABASE_URL = 'https://lonakqiibwcgvuszynii.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_e2Zek5Nkv65M7Q5nRVlSSA_bOiLU-o9';
 const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
 const fmt = (n)=> n ? n.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : '0.00';
