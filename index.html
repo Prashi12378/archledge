@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArchLedge | BOQ Studio</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600;700&family=Roboto+Mono:wght@300;400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="logo">
+      <i data-lucide="layout-template" style="color:var(--accent)"></i>
+      <span class="logo-text">ArchLedge</span>
+    </div>
+    <nav>
+      <a href="#dashboard" data-view="dashboard" class="active">
+        <div class="icon"><i data-lucide="layout-dashboard"></i></div>
+        <span>Dashboard</span>
+      </a>
+      <a href="#projects" data-view="projects">
+        <div class="icon"><i data-lucide="folder-kanban"></i></div>
+        <span>Projects</span>
+      </a>
+      <a href="#editor" data-view="editor">
+        <div class="icon"><i data-lucide="file-edit"></i></div>
+        <span>BOQ Editor</span>
+      </a>
+      <a href="#print" data-view="print">
+        <div class="icon"><i data-lucide="printer"></i></div>
+        <span>Summary</span>
+      </a>
+      <a href="#settings" data-view="settings">
+        <div class="icon"><i data-lucide="settings"></i></div>
+        <span>Studio Branding</span>
+      </a>
+    </nav>
+    <div style="flex:1"></div>
+    <div class="footer">Professional Studio Tool</div>
+  </aside>
+  <main id="main">
+    <section id="dashboard" class="view active">
+      <header><h1>Dashboard</h1></header>
+      <div class="kpi-grid" id="kpi-grid"></div>
+    </section>
+    <section id="projects" class="view">
+      <header><h1>Projects</h1><button class="btn btn-primary" id="new-project-btn">+ New Project</button></header>
+      <div class="table-container">
+        <table id="projects-table">
+          <thead><tr><th>No</th><th>Project Name</th><th>Client</th><th>Location</th><th>Value</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+    <section id="editor" class="view">
+      <header><h1 id="editor-title">BOQ Editor</h1><div id="editor-actions"></div></header>
+      <div id="editor-content"></div>
+    </section>
+    <section id="new-project" class="view">
+      <header><h1>Register New Project</h1></header>
+      <form onsubmit="addProject(event)" class="card" style="background:#fff; border:1px solid var(--border); border-radius:8px; max-width: 600px; margin: 0 auto; padding: 30px; box-shadow:var(--shadow);">
+        <div class="form-group"><label>Project Name</label><input type="text" id="pname" required placeholder="E.g. Penthouse Renovation"></div>
+        <div class="form-group"><label>Client Name</label><input type="text" id="pclient" required placeholder="E.g. SAS Design"></div>
+        <div class="form-group"><label>Location</label><input type="text" id="ploc" required placeholder="E.g. Bangalore"></div>
+        <div class="form-group"><label>Reference # / Date</label><input type="text" id="pref" placeholder="E.g. REF-2026-001"></div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="submit" class="btn btn-primary">Create Project</button>
+          <button type="button" class="btn btn-outline" onclick="location.hash='#projects'">Cancel</button>
+        </div>
+      </form>
+    </section>
+    <section id="print" class="view">
+      <header><h1>Print Preview</h1><button class="btn btn-outline" onclick="triggerPrint()">Print Document</button></header>
+      <div id="print-content" style="background:#fff; min-height:100vh;"></div>
+    </section>
+    <section id="settings" class="view">
+      <header><h1>Studio Branding</h1></header>
+      <div class="card" style="background:#fff; border:1px solid var(--border); border-radius:8px; max-width: 600px; margin: 20px auto; padding: 30px; box-shadow:var(--shadow);">
+        <p style="margin-bottom:20px; color:var(--muted); font-size:14px;">Configure your firm's identity for the professional BOQ document header.</p>
+        <div class="form-group"><label>Firm Name</label><input type="text" id="studio-name" placeholder="ArchLedge Studio"></div>
+        <div class="form-group"><label>Tagline / Service Type</label><input type="text" id="studio-tagline" placeholder="Architectural Studio"></div>
+        <div class="form-group"><label>Office Address / Location</label><input type="text" id="studio-address" placeholder="Bangalore, India"></div>
+        <div class="form-group"><label>Contact Email</label><input type="email" id="studio-email" placeholder="studio@archledge.com"></div>
+        <div style="margin-top:20px;"><button class="btn btn-primary" onclick="saveStudio()">Save Branding</button></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Export Modal -->
+<div id="exportModal" class="modal-backdrop">
+  <div class="modal" style="max-width: 480px">
+    <div class="modal-header">
+      <h2>Export BOQ as CSV</h2>
+      <button onclick="closeExportModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="export-project-id" />
+      <div class="form-group">
+        <label>Export Mode</label>
+        <div class="radio-group">
+          <label><input type="radio" name="exportMode" value="combined" checked> Combined — all bills in one file</label>
+          <label><input type="radio" name="exportMode" value="perbill"> Per Bill — separate file per bill</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Include in Export</label>
+        <div class="checkbox-group">
+          <label><input type="checkbox" id="chk-sections" checked> Section header rows</label>
+          <label><input type="checkbox" id="chk-notes" checked> Note rows</label>
+          <label><input type="checkbox" id="chk-subtotals" checked> Subtotal rows</label>
+          <label><input type="checkbox" id="chk-billtotals" checked> Bill total rows</label>
+          <label><input type="checkbox" id="chk-summary" checked> Summary table at top</label>
+          <label><input type="checkbox" id="chk-notincluded" checked> Items Not Included</label>
+          <label><input type="checkbox" id="chk-hidden"> Hidden columns</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Amount Format</label>
+        <div class="radio-group">
+          <label><input type="radio" name="amtFormat" value="symbol" checked> With symbol (₹49,44,335)</label>
+          <label><input type="radio" name="amtFormat" value="indian"> Indian format (49,44,335)</label>
+          <label><input type="radio" name="amtFormat" value="raw"> Raw number (4944335)</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Filename Prefix</label>
+        <input type="text" id="exportFilename" class="fi" placeholder="ProjectName_BOQ">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeExportModal()">Cancel</button>
+      <button class="btn btn-accent" onclick="confirmExport()">Download CSV</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bill Options Modal -->
+<div class="modal-backdrop" id="bill-modal-backdrop">
+  <div class="modal">
+    <h2>Add New Bill Category</h2>
+    <div class="form-group"><label>Bill Name</label><input id="new-bill-name" placeholder="E.g., Electrical Works"/></div>
+    <div class="form-group"><label>Bill Type / Template</label>
+      <select id="new-bill-type" onchange="document.getElementById('custom-headers-box').style.display=(this.value==='Custom'?'block':'none')">
+        <option value="Standard">Standard (Particulars, Qty, Unit, Rate, Amt)</option>
+        <option value="Carpentry">Carpentry (With Dimensions W/H/D + Area)</option>
+        <option value="Civil">Civil (With Length/Breadth/Depth)</option>
+        <option value="Custom">Custom (Define Your Own Columns)</option>
+      </select>
+    </div>
+    <div id="custom-headers-box" class="form-group" style="display:none;">
+      <label>Custom Column Headers (comma separated)</label>
+      <input type="text" id="custom-headers-input" placeholder="E.g. Item, Brand, Color, Qty, Price">
+    </div>
+    <div class="actions" style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+      <button class="btn btn-outline" onclick="closeBillModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="createNewBill()">Create Bill</button>
+    </div>
+  </div>
+</div>
+
+<!-- Item Modal -->
+<div class="modal-backdrop" id="item-modal-backdrop">
+  <div class="modal">
+    <h2 id="item-modal-title">Line Item Details</h2>
+    <input type="hidden" id="modal-item-indices" />
+    <div class="form-group"><label>Particulars</label><textarea id="item-particulars" rows="3"></textarea></div>
+    
+    <div id="fields-dimensional" style="display:none; gap:10px; margin-bottom:15px;">
+      <div class="form-group" style="flex:1"><label id="label-dim1">W (m)</label><input type="number" step="0.01" id="item-w" oninput="itemCalc()"/></div>
+      <div class="form-group" style="flex:1"><label id="label-dim2">H (m)</label><input type="number" step="0.01" id="item-h" oninput="itemCalc()"/></div>
+      <div class="form-group" style="flex:1"><label id="label-dim3">D (m)</label><input type="number" step="0.01" id="item-d" oninput="itemCalc()"/></div>
+    </div>
+
+    <div style="display:flex; gap:10px;">
+      <div class="form-group" style="flex:1"><label id="label-qty">Quantity / Area</label><input type="number" step="0.001" id="item-area" oninput="itemCalc()"/></div>
+      <div class="form-group" style="flex:1"><label>Unit</label><input id="item-unit" value="sqm"/></div>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <div class="form-group" style="flex:1"><label>Rate (₹)</label><input type="number" id="item-rate" oninput="itemCalc()"/></div>
+      <div class="form-group" style="flex:1"><label>Total Amount (₹)</label><input type="number" id="item-amount" readonly style="background:#f0f0f0;"/></div>
+    </div>
+    <div class="actions" style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+      <button class="btn btn-outline" onclick="closeItemModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveItem()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generic Prompt Modal -->
+<div class="modal-backdrop" id="prompt-modal-backdrop">
+  <div class="modal" style="max-width:400px">
+    <h2 id="prompt-title">Enter Details</h2>
+    <div class="form-group">
+      <label id="prompt-label">Name</label>
+      <input id="prompt-input" type="text" />
+    </div>
+    <input type="hidden" id="prompt-callback-id" />
+    <div class="actions" style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+      <button class="btn btn-outline" onclick="closePrompt()">Cancel</button>
+      <button class="btn btn-primary" id="prompt-confirm-btn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generic Confirm Modal -->
+<div class="modal-backdrop" id="confirm-modal-backdrop">
+  <div class="modal" style="max-width:400px; text-align:center;">
+    <h2 id="confirm-title" style="margin-bottom:10px;">Are you sure?</h2>
+    <p id="confirm-msg" style="color:var(--muted); margin-bottom:25px;"></p>
+    <div class="actions" style="display:flex; justify-content:center; gap:10px;">
+      <button class="btn btn-outline" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-primary" id="confirm-yes-btn" style="background:var(--danger)">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="script.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+</body>
+</html>
