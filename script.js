@@ -1,9 +1,9 @@
 // Supabase Configuration
 const SUPABASE_URL = 'https://lonakqiibwcgvuszynii.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_e2Zek5Nkv65M7Q5nRVlSSA_bOiLU-o9';
-const supabase = (window.supabase || supabase)?.createClient ? (window.supabase || supabase).createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-if (!supabase) console.error("Supabase fail to initialize. Check CDN link in index.html");
+if (!supabaseClient) console.error("Supabase fail to initialize. Check CDN link in index.html");
 else console.log("Supabase initialized successfully.");
 
 const fmt = (n)=> n ? n.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : '0.00';
@@ -33,10 +33,10 @@ async function load(){
     }
 
     // 2. If Supabase is available and user is logged in, sync from cloud
-    if(supabase){
-      const { data: { session } } = await supabase.auth.getSession();
+    if(supabaseClient){
+      const { data: { session } } = await supabaseClient.auth.getSession();
       if(session && session.user){
-        const { data, error } = await supabase.from('projects').select('*').eq('user_id', session.user.id);
+        const { data, error } = await supabaseClient.from('projects').select('*').eq('user_id', session.user.id);
         if(!error && data.length > 0){
           // Merge or replace local projects with cloud projects
           // For simplicity, we replace for now
@@ -67,12 +67,12 @@ async function save(){
   localStorage.setItem('boq_v2_data', JSON.stringify(DB)); 
   
   // Sync to Supabase if logged in
-  if(supabase){
-    const { data: { session } } = await supabase.auth.getSession();
+  if(supabaseClient){
+    const { data: { session } } = await supabaseClient.auth.getSession();
     if(session && session.user){
       const p = activeProj();
       if(p){
-        const { error } = await supabase.from('projects').upsert({
+        const { error } = await supabaseClient.from('projects').upsert({
           id: p.id,
           user_id: session.user.id,
           name: p.name,
@@ -466,8 +466,8 @@ window.onhashchange = ()=>{ render(); initIcons(); };
 window.onload = ()=>{ 
   load(); 
   initIcons();
-  if(supabase) {
-    supabase.auth.onAuthStateChange((event, session) => {
+  if(supabaseClient) {
+    supabaseClient.auth.onAuthStateChange((event, session) => {
       updateAuthUI(session);
       if(event === 'SIGNED_IN') load();
     });
@@ -488,15 +488,15 @@ function toggleAuthMode(){
 
 async function handleAuth(e){
   e.preventDefault();
-  if(!supabase) return toast('Supabase not configured', 'error');
+  if(!supabaseClient) return toast('Supabase not configured', 'error');
   const email = document.getElementById('auth-email').value;
   const password = document.getElementById('auth-pass').value;
   
   let result;
   if(authMode === 'login'){
-    result = await supabase.auth.signInWithPassword({ email, password });
+    result = await supabaseClient.auth.signInWithPassword({ email, password });
   } else {
-    result = await supabase.auth.signUp({ email, password });
+    result = await supabaseClient.auth.signUp({ email, password });
   }
 
   if(result.error) toast(result.error.message, 'error');
@@ -508,7 +508,7 @@ async function handleAuth(e){
 
 async function signOut(e){
   e.preventDefault();
-  await supabase.auth.signOut();
+  await supabaseClient.auth.signOut();
   DB.projects = [];
   seed();
   toast('Signed out');
