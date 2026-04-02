@@ -516,10 +516,10 @@ async function signOut(e){
 
 function updateAuthUI(session){
   const user = session?.user;
-  document.getElementById('auth-nav').style.display = user ? 'none' : 'block';
-  document.getElementById('user-profile').style.display = user ? 'flex' : 'none';
+  document.getElementById('auth-nav').style.setProperty('display', user ? 'none' : 'block', 'important');
+  document.getElementById('user-profile').style.setProperty('display', user ? 'flex' : 'none', 'important');
   if(user){
     document.getElementById('user-email').innerText = user.email;
-    document.getElementById('user-avatar').innerText = user.email[0].toUpperCase();
+    document.getElementById('user-avatar').innerText = user.email ? user.email[0].toUpperCase() : 'U';
   }
 }

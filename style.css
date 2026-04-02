@@ -76,13 +76,16 @@
     /* Lucide Icon Style */
     .lucide { width: 18px; height: 18px; stroke-width: 2px; }
     /* Auth Elements */
-    #sidebar:hover #user-profile { display: flex !important; }
-    #sidebar:not(:hover) #user-info { display: none; }
     .user-avatar { transition: transform 0.2s; }
     #sidebar:hover .user-avatar { transform: scale(1.1); }
     
     #auth-form .btn { width: 100%; margin-top: 5px; }
 
-    /* Hide Auth elements when sidebar is collapsed */
-    #sidebar:not(:hover) #auth-nav,
-    #sidebar:not(:hover) #user-profile { display: none !important; }
+    /* Ensure text is hidden when sidebar is collapsed */
+    #sidebar:not(:hover) #user-profile .user-info,
+    #sidebar:not(:hover) #auth-nav span,
+    #sidebar:not(:hover) #auth-nav button span { display: none; }
+    
+    /* When collapsed, only show avatar or icon if we decide to adjust padding */
+    #sidebar:not(:hover) #auth-nav { padding: 15px 23px; }
+    #sidebar:not(:hover) #user-profile { padding: 15px 19px; }
