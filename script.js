@@ -98,8 +98,8 @@ function seed(){
     bills: [
       { id: generateId(), name: 'CARPENTRY WORKS', type: 'Carpentry', sections: [
         { title: 'WORKSTATION AREA', items: [
-          { particulars: '1350mm x 600 mm x600mm(depth) vanity with PU finish', w: 1.35, h: 0.6, d: 0.15, area: 0.81, unit: 'sqm', rate: 40000, amount: 32400 },
-          { particulars: '1350mm x 1560mm - 6mm thk mirror with ply backing', w: 1.35, h: 1.56, d: 0, area: 2.106, unit: 'sqm', rate: 15000, amount: 31590 }
+          { particulars: '1350mm x 600 mm x600mm(depth) vanity with PU finish', w: 1.35, h: 0.6, d: 0.15, area: 0.81, unit: 'sqft', rate: 40000, amount: 32400 },
+          { particulars: '1350mm x 1560mm - 6mm thk mirror with ply backing', w: 1.35, h: 1.56, d: 0, area: 2.106, unit: 'sqft', rate: 15000, amount: 31590 }
         ]}
       ]},
       { id: generateId(), name: 'ELECTRICAL FIXTURES', type: 'Standard', sections: [
@@ -306,15 +306,15 @@ function openItemModal(b, s, i = null){
   const dimBox = document.getElementById('fields-dimensional');
   if(bill.type === 'Carpentry'){
     dimBox.style.display = 'flex';
-    document.getElementById('label-dim1').innerText = 'W (m)';
-    document.getElementById('label-dim2').innerText = 'H (m)';
-    document.getElementById('label-dim3').innerText = 'D (m)';
-    document.getElementById('label-qty').innerText = 'Area (sqm)';
+    document.getElementById('label-dim1').innerText = 'W (ft)';
+    document.getElementById('label-dim2').innerText = 'H (ft)';
+    document.getElementById('label-dim3').innerText = 'D (ft)';
+    document.getElementById('label-qty').innerText = 'Area (sqft)';
   } else if(bill.type === 'Civil'){
     dimBox.style.display = 'flex';
-    document.getElementById('label-dim1').innerText = 'L (m)';
-    document.getElementById('label-dim2').innerText = 'B (m)';
-    document.getElementById('label-dim3').innerText = 'D (m)';
+    document.getElementById('label-dim1').innerText = 'L (ft)';
+    document.getElementById('label-dim2').innerText = 'B (ft)';
+    document.getElementById('label-dim3').innerText = 'D (ft)';
     document.getElementById('label-qty').innerText = 'Quantity';
   } else {
     dimBox.style.display = 'none';
@@ -333,7 +333,7 @@ function openItemModal(b, s, i = null){
   } else {
     document.getElementById('item-particulars').value = '';
     document.getElementById('item-w').value = 0; document.getElementById('item-h').value = 0; document.getElementById('item-d').value = 0;
-    document.getElementById('item-area').value = 0; document.getElementById('item-unit').value = 'sqm';
+    document.getElementById('item-area').value = 0; document.getElementById('item-unit').value = 'sqft';
     document.getElementById('item-rate').value = 0; document.getElementById('item-amount').value = 0;
   }
   document.getElementById('item-modal-backdrop').style.display = 'flex';
