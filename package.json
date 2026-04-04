@@ -1,0 +1,13 @@
+{
+  "name": "archledge-boq-studio",
+  "version": "1.0.0",
+  "description": "Professional BOQ Studio for Architects",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve ."
+  },
+  "dependencies": {
+    "serve": "^14.2.4"
+  }
+}
