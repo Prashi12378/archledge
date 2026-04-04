@@ -4,8 +4,8 @@
   "description": "Professional BOQ Studio for Architects",
   "main": "index.html",
   "scripts": {
-    "start": "npx serve -l $PORT .",
-    "dev": "npx serve -l 8080 ."
+    "start": "npx serve -l tcp://0.0.0.0:$PORT .",
+    "dev": "npx serve -l tcp://0.0.0.0:8080 ."
   },
   "dependencies": {
     "serve": "^14.2.4"
